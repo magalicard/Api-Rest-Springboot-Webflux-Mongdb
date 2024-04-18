@@ -119,4 +119,25 @@ public class ClienteController {
                     });
         });
     }
+
+    //editamos cliente
+    @PutMapping("/{id}")
+    public Mono<ResponseEntity<Cliente>> editarCliente(@RequestBody Cliente cliente, @PathVariable String id ){
+        return clienteService.findById(id).flatMap(c -> {
+            c.setNombre(cliente.getNombre());
+            c.setApellido(cliente.getApellido());
+            return clienteService.save(c);
+        }).map(c -> ResponseEntity.created(URI.create("/api/clientes/".concat(c.getId())))
+                .contentType(MediaType.APPLICATION_JSON_UTF8)
+                .body(c))
+        .defaultIfEmpty(ResponseEntity.notFound().build());
+    }
+
+    //Borrar
+    @DeleteMapping("/{id}")
+    public Mono<ResponseEntity<Void>> eliminarCliente(@PathVariable String id){
+        return clienteService.findById(id).flatMap(c -> {
+            return clienteService.delete(c).then(Mono.just(new ResponseEntity<Void>(HttpStatus.NO_CONTENT)));
+        }).defaultIfEmpty(new ResponseEntity<Void>(HttpStatus.NOT_FOUND));
+    }
 }
